@@ -3,99 +3,105 @@ pipeline
     agent any
     stages
     {
-        stage('ContDownload')
+        stage('continuousDownload')
         {
             steps
             {
-			    script
-				{
-				   try
-				   {
-                            git 'https://github.com/intelliqittrainings/maven.git'
-				   }
-				   catch(Exception e1)
-				   {
-				       mail bcc: '', body: 'Jenkins is unable to download from github', cc: '', from: '', replyTo: '', subject: 'Download issue', to: 'git_admin@gmail.com'
-				      exit(1);
-				   }
-				 }
+                script
+                {
+                    try
+                    {
+                      git 'https://github.com/kumarrahul032/maven.git'   
+                    }
+                    catch(Exception e1)
+                    {
+                      mail bcc: '', body: 'jenkins is unable to download the code from github', cc: '', from: '', replyTo: '', subject: '', to: 'kumarrahul24007@gmail.com'  
+                      exit(1)
+                    }
+                    
+                }
+               
             }
         }
-        stage('ContBuild')
+        stage('continuousBuild')
         {
             steps
             {
-			    script
-				{
-				    try
-					{
-                          sh label: '', script: 'mvn package'
-				    }
-					catch(Exception e2)
-					{
-					    mail bcc: '', body: 'Jenkins is unable to create an artifact', cc: '', from: '', replyTo: '', subject: 'Build issue', to: 'developers@gmail.com'
-						exit(1);
-					}
-				}
+                script
+                {
+                    try
+                    {
+                       sh 'mvn package'  
+                    }
+                    catch(Exception e2)
+                    {
+                      mail bcc: '', body: 'jenkins is unable to create an artifact from the code', cc: '', from: '', replyTo: '', subject: '', to: 'kumarrahul24007@gmail.com'  
+                      exit(1)
+                    }
+                    
+                }
+               
             }
         }
-        stage('ContDeployment')
+        stage('continuousDeployment')
         {
             steps
             {
-			    script
-				{
-				    try
-					{
-                       sh label: '', script: 'scp /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/webapp.war ubuntu@172.31.36.247:/var/lib/tomcat8/webapps/newtest1.war'
+                script
+                {
+                    try
+                    {
+                       sh 'scp /home/ubuntu/.jenkins/workspace/declarative/webapp/target/webapp.war ubuntu@172.31.24.150:/var/lib/tomcat9/testapp.war'     
                     }
-					catch(Exception e3)
-					{
-					    mail bcc: '', body: 'Jenkins is unable to deploy into the QAServers', cc: '', from: '', replyTo: '', subject: 'Deployment issue', to: 'middleware@gmail.com'
-					    exit(1);
-					}
-				}
-			}
+                    catch(Exception e3)
+                    {
+                      mail bcc: '', body: 'jenkins is unable to deploy into tomcat on the QA server', cc: '', from: '', replyTo: '', subject: '', to: 'kumarrahul24007@gmail.com' 
+                      exit(1)
+                    }
+                }
+            
+            }
         }
-        stage('ContTesting')
+        stage('continuousTesting')
         {
             steps
             {
-			    script
-				{
-				    try
-					{
-                         git 'https://github.com/selenium-saikrishna/FunctionalTesting.git'
-                         sh label: '', script: 'echo "Testing Passed"'  
+                script
+                {
+                    try
+                    {
+                       git 'https://github.com/kumarrahul032/FunctionalTesting.git' 
+                        sh 'java -jar /home/ubuntu/.jenkins/workspace/declarative/testing.jar' 
                     }
-					catch(Exception e4)
-					{
-					    mail bcc: '', body: 'Functional Testing has failed', cc: '', from: '', replyTo: '', subject: 'Testingt issue', to: 'testers@gmail.com'
-			            exit(1);
-					}
-			    }
-			}
-		}
+                    catch(Exception e4)
+                    {
+                       mail bcc: '', body: 'Functional testing of the application on QA Server has failed', cc: '', from: '', replyTo: '', subject: '', to: 'kumarrahul24007@gmail.com'
+                       exit(1)
+                    }
+                }
+               
+            }
         }
-    
-    stage('ContDelivery')
-    {
-	    steps
-		{
-		    script
-			{
-			     try
-				 {
-				    sh label: '', script: 'scp /var/lib/jenkins/workspace/DeclarativePipeline/webapp/target/webapp.war ubuntu@172.31.35.219:/var/lib/tomcat8/webapps/prod.war' 
-		         }
-				 catch(Exception e5)
-				 {
-				    mail bcc: '', body: 'Jenkins is unable to deploy into prod servers', cc: '', from: '', replyTo: '', subject: 'Delivery issue', to: 'delivery@gmail.com'
-					exit(1);
-				 }
-			}
-		}
-	}
-}
-}
+        stage('continuousDelivery')
+        {
+            steps
+            {
+                script
+                {
+                    try
+                    {
+                       input message: 'waiting for approval from the DM', submitter: 'atul'
+                        sh 'scp /home/ubuntu/.jenkins/workspace/declarative/webapp/target/webapp.war ubuntu@172.31.24.3:/var/lib/tomcat9/prodapp.war'     
+                    }
+                    catch(Exception e5)
+                    {
+                       mail bcc: '', body: 'Delivery into Prod Server has failed', cc: '', from: '', replyTo: '', subject: '', to: 'kumarrahul24007@gmail.com'
+                       exit(1)
+                    }
+                }
+               
+            }
+        }
         
+    }
+}
